@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  # MySQL Database for Metrics Service
+  mysql:
+    image: mysql:8.0
+    container_name: codeguardian-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-codeguardian_metrics}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./metrics-service/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codeguardian-network
+
+  # Repo Service - GitHub Integration
+  repo-service:
+    build:
+      context: ./repo-service
+      dockerfile: Dockerfile
+    container_name: codeguardian-repo
+    ports:
+      - "5001:5001"
+    environment:
+      PORT: 5001
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+    networks:
+      - codeguardian-network
+    restart: unless-stopped
+
+  # AI Review Service - Gemini Integration
+  ai-review-service:
+    build:
+      context: ./ai-review-service
+      dockerfile: Dockerfile
+    container_name: codeguardian-ai
+    ports:
+      - "5002:5002"
+    environment:
+      PORT: 5002
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      METRICS_URL: http://metrics-service:5003/api/metrics
+      NOTIFICATION_URL: http://notification-service:5004/notify
+    depends_on:
+      - metrics-service
+      - notification-service
+    networks:
+      - codeguardian-network
+    restart: unless-stopped
+
+  # Metrics Service - Analytics and Database
+  metrics-service:
+    build:
+      context: ./metrics-service
+      dockerfile: Dockerfile
+    container_name: codeguardian-metrics
+    ports:
+      - "5003:5003"
+    environment:
+      PORT: 5003
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      DB_NAME: ${DB_NAME:-codeguardian_metrics}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - codeguardian-network
+    restart: unless-stopped
+
+  # Notification Service - AWS SNS and EmailJS
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: codeguardian-notify
+    ports:
+      - "5004:5004"
+    environment:
+      PORT: 5004
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      SNS_TOPIC_ARN: ${SNS_TOPIC_ARN}
+      S3_BUCKET: ${S3_BUCKET}
+      EMAILJS_SERVICE_ID: ${EMAILJS_SERVICE_ID}
+      EMAILJS_TEMPLATE_ID: ${EMAILJS_TEMPLATE_ID}
+      EMAILJS_PUBLIC_KEY: ${EMAILJS_PUBLIC_KEY}
+    networks:
+      - codeguardian-network
+    restart: unless-stopped
+
+  # Insight Service - Aggregation and Analytics
+  insight-service:
+    build:
+      context: ./insight-service
+      dockerfile: Dockerfile
+    container_name: codeguardian-insight
+    ports:
+      - "5005:5005"
+    environment:
+      PORT: 5005
+      AI_SERVICE_URL: http://ai-review-service:5002/api
+      METRICS_URL: http://metrics-service:5003/api/metrics
+      REPO_SERVICE_URL: http://repo-service:5001/api
+    depends_on:
+      - repo-service
+      - ai-review-service
+      - metrics-service
+    networks:
+      - codeguardian-network
+    restart: unless-stopped
+
+networks:
+  codeguardian-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local

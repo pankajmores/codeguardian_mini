@@ -1,0 +1,24 @@
+{
+  "name": "codeguardian",
+  "version": "1.0.0",
+  "description": "CodeGuardian - Intelligent DevOps Assistant",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start:repo": "cd repo-service && npm start",
+    "start:ai": "cd ai-review-service && npm start",
+    "start:metrics": "cd metrics-service && npm start",
+    "start:notification": "cd notification-service && npm start",
+    "start:insight": "cd insight-service && npm start",
+    "install:all": "npm install && cd repo-service && npm install && cd ../ai-review-service && npm install && cd ../metrics-service && npm install && cd ../notification-service && npm install && cd ../insight-service && npm install",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "keywords": ["devops", "code-review", "ai", "github", "aws"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
