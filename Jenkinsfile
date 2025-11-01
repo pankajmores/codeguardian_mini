@@ -1,37 +1,23 @@
 pipeline {
     agent any
-
+    triggers {
+        githubPush()
+    }
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main',
-                      url: 'https://github.com/pankajmores/codeguardian_mini.git'
-
-            }
-        }
-
         stage('Build') {
             steps {
-                echo 'Building the application...'
+                echo 'Building project...'
             }
         }
-
         stage('Test') {
             steps {
                 echo 'Running tests...'
             }
         }
-
         stage('Deploy') {
             steps {
-                echo 'Deploying the application...'
+                echo 'Deploying...'
             }
-        }
-    }
-
-    post {
-        always {
-            echo 'Pipeline completed!'
         }
     }
 }
