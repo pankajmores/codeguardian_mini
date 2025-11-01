@@ -6,7 +6,7 @@ pipeline {
         genericVariables: [
             [key: 'ref', value: '$.ref']
         ],
-        causeString: 'Triggered on $ref',
+        causeString: 'Triggered on branch: $ref',
         token: 'codeguardian123',
         printContributedVariables: true,
         printPostContent: true,
@@ -14,6 +14,7 @@ pipeline {
         regexpFilterExpression: 'refs/heads/main'
     )
 }
+
 
 
     environment {
