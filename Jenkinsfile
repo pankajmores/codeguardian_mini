@@ -2,19 +2,19 @@ pipeline {
     agent any
 
     triggers {
-        GenericTrigger(
-            genericVariables: [
-                [key: 'ref', value: '$.ref'],
-                [key: 'repository_url', value: '$.repository.clone_url']
-            ],
-            causeString: 'Triggered on $ref',
-            token: 'codeguardian123',
-            printContributedVariables: true,
-            printPostContent: true,
-            regexpFilterText: '$ref',
-            regexpFilterExpression: 'refs/heads/main'
-        )
-    }
+    GenericTrigger(
+        genericVariables: [
+            [key: 'ref', value: '$.ref']
+        ],
+        causeString: 'Triggered on $ref',
+        token: 'codeguardian123',
+        printContributedVariables: true,
+        printPostContent: true,
+        regexpFilterText: '$ref',
+        regexpFilterExpression: 'refs/heads/main'
+    )
+}
+
 
     environment {
         GIT_REPO = "${repository_url ?: 'https://github.com/pankajmores/codeguardian_mini.git'}"
