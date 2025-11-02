@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: "repo-service"
+    static_configs:
+      - targets: ["repo-service:5001"]
+
+  - job_name: "metrics-service"
+    static_configs:
+      - targets: ["metrics-service:5003"]
+
+  - job_name: "notification-service"
+    static_configs:
+      - targets: ["notification-service:5004"]
